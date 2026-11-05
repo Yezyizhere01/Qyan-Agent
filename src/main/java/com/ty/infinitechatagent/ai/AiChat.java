@@ -11,7 +11,7 @@ import dev.langchain4j.service.guardrail.InputGuardrails;
 public interface AiChat {
 
     @SystemMessage(fromResource = "system-prompt/chat-bot.txt")
-    String chat(@MemoryId String sessionId, @UserMessage String prompt);
+    String chat(@MemoryId Long sessionId, @UserMessage String prompt);
 
 
 }

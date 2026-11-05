@@ -1,6 +1,7 @@
 package com.ty.infinitechatagent.controller;
 
 import com.ty.infinitechatagent.ai.AiChat;
+import com.ty.infinitechatagent.model.dto.ChatRequest;
 import com.ty.infinitechatagent.model.dto.KnowledgeRequest;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.Metadata;
@@ -24,18 +25,18 @@ import java.nio.file.StandardOpenOption;
 @RestController
 public class AiChatController {
 
+    private final String TARGET_FILENAME = "InfiniteChat.md";
+
     @Resource
     private AiChat aiChat;
 
-    @GetMapping("/chat")
-    public String chat(@MemoryId String sessionId, String prompt) {
-        return aiChat.chat(sessionId, prompt);
+    @PostMapping("/chat")
+    public String chat(@RequestBody ChatRequest chatRequest) {
+        return aiChat.chat(chatRequest.getSessionId(), chatRequest.getPrompt());
     }
 
     @Value("${rag.docs-path}")
     private String docsPath;
-
-    private final String TARGET_FILENAME = "InfiniteChat.md";
 
     @Resource
     private EmbeddingStoreIngestor embeddingStoreIngestor;
