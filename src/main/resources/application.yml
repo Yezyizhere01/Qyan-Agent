@@ -47,6 +47,9 @@ langchain4j:
       embedding-model:
         model-name: text-embedding-v4
         api-key: ${DASHSCOPE_API_KEY}
+      streaming-chat-model:
+        model-name: qwen-max
+        api-key: ${DASHSCOPE_API_KEY}
 
 bigmodel:
   api-key: ${BIGMODEL_API_KEY}
