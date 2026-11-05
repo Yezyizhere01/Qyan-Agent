@@ -1,5 +1,6 @@
 package com.ty.infinitechatagent.ai;
 
+import com.ty.infinitechatagent.tool.EmailTool;
 import com.ty.infinitechatagent.tool.RagTool;
 import com.ty.infinitechatagent.tool.TimeTool;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
@@ -27,6 +28,8 @@ public class AiChatService {
     @Resource
     private ContentRetriever contentRetriever;
 
+    @Resource
+    private EmailTool emailTool;
 
     @Resource
     private RagTool ragTool;
@@ -43,7 +46,7 @@ public class AiChatService {
                         .maxMessages(20)
                         .build())
                 .contentRetriever(contentRetriever)
-                .tools(new TimeTool(), ragTool)
+                .tools(new TimeTool(), ragTool, emailTool)
                 .toolProvider(mcpToolProvider)
                 .build();
     }
