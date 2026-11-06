@@ -3,6 +3,8 @@ package com.ty.infinitechatagent.controller;
 import com.ty.infinitechatagent.ai.AiChat;
 import com.ty.infinitechatagent.model.dto.ChatRequest;
 import com.ty.infinitechatagent.model.dto.KnowledgeRequest;
+import com.ty.infinitechatagent.monitor.MonitorContext;
+import com.ty.infinitechatagent.monitor.MonitorContextHolder;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.service.MemoryId;
@@ -30,11 +32,6 @@ public class AiChatController {
 
     @Resource
     private AiChat aiChat;
-
-    @PostMapping("/chat")
-    public String chat(@RequestBody ChatRequest chatRequest) {
-        return aiChat.chat(chatRequest.getSessionId(), chatRequest.getPrompt());
-    }
 
     @Value("${rag.docs-path}")
     private String docsPath;
@@ -101,8 +98,26 @@ public class AiChatController {
         }
     }
 
+    @PostMapping("/chat")
+    public String chat(@RequestBody ChatRequest chatRequest) {
+        MonitorContextHolder.setContext(MonitorContext.builder().userId(chatRequest.getUserId()).sessionId(chatRequest.getSessionId()).build());
+        String chat = aiChat.chat(chatRequest.getSessionId(), chatRequest.getPrompt());
+        MonitorContextHolder.clearContext();
+        return chat;
+    }
+
+
     @PostMapping("/streamChat")
     public Flux<String> streamChat(@RequestBody ChatRequest chatRequest) {
-        return aiChat.streamChat(chatRequest.getSessionId(), chatRequest.getPrompt());
+        MonitorContext context = MonitorContext.builder()
+                .userId(chatRequest.getUserId())
+                .sessionId(chatRequest.getSessionId())
+                .build();
+
+        return Flux.defer(() -> {
+            MonitorContextHolder.setContext(context);
+            return aiChat.streamChat(chatRequest.getSessionId(), chatRequest.getPrompt())
+                    .doFinally(signal -> MonitorContextHolder.clearContext());
+        });
     }
 }

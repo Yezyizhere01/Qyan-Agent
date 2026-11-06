@@ -56,3 +56,12 @@ bigmodel:
 
 rag:
   docs-path: D:\code\InfiniteChat-Agent\src\main\resources\docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
