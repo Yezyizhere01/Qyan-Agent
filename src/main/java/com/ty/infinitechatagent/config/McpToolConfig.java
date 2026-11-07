@@ -30,18 +30,22 @@ public class McpToolConfig {
                 .build();
 
 
-        McpTransport timeTransport = new StdioMcpTransport.Builder()
-                .command(Arrays.asList("uvx", "mcp-server-time", "--local-timezone=Asia/Shanghai"))
-                .build();
-
-
-        McpClient timeClient = new DefaultMcpClient.Builder()
-                .key("timeClient")
-                .transport(timeTransport)
-                .build();
+//        McpTransport timeTransport = new StdioMcpTransport.Builder()
+//                .command(Arrays.asList("uvx", "mcp-server-time", "--local-timezone=Asia/Shanghai"))
+//                .build();
+//
+//
+//        McpClient timeClient = new DefaultMcpClient.Builder()
+//                .key("timeClient")
+//                .transport(timeTransport)
+//                .build();
+//
+//        return McpToolProvider.builder()
+//                .mcpClients(Arrays.asList(searchClient, timeClient))
+//                .build();
 
         return McpToolProvider.builder()
-                .mcpClients(Arrays.asList(searchClient, timeClient))
+                .mcpClients(searchClient)
                 .build();
     }
 }

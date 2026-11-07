@@ -1,13 +1,6 @@
 spring:
   application:
     name: InfiniteChat-Agent
-  data:
-    redis:
-      host: localhost
-      port: 59000
-      ttl: 3600
-      timeout: 30000
-      password: e65K4t8w2
   mail:
     host: smtp.qq.com  # 以QQ邮箱为例
     port: 587
@@ -25,18 +18,9 @@ server:
   servlet:
     context-path: /api
 
-
 logging:
   level:
     dev.langchain4j.mcp: ERROR
-
-pgvector:
-  database: dp
-  host: localhost
-  port : 54328
-  user: root
-  password: e65K4t7z1
-  table: dp_embedding
 
 langchain4j:
   community:
@@ -53,9 +37,6 @@ langchain4j:
 
 bigmodel:
   api-key: ${BIGMODEL_API_KEY}
-
-rag:
-  docs-path: D:\code\InfiniteChat-Agent\src\main\resources\docs
 
 management:
   endpoints:
