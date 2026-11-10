@@ -1,6 +1,8 @@
 spring:
   application:
     name: InfiniteChat-Agent
+  profiles:
+    active: dev
   mail:
     host: smtp.qq.com  # 以QQ邮箱为例
     port: 587

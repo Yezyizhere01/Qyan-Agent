@@ -28,7 +28,7 @@ import java.nio.file.StandardOpenOption;
 @RestController
 public class AiChatController {
 
-    private final String TARGET_FILENAME = "InfiniteChat.md";
+    private final String TARGET_FILENAME = "Test.md";
 
     @Resource
     private AiChat aiChat;
