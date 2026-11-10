@@ -10,7 +10,7 @@ spring:
 pgvector:
   database: dp
   host: localhost
-  port : 54328
+  port : 15432
   user: root
   password: e65K4t7z1
   table: agent_embedding

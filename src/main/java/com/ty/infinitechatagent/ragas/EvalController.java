@@ -31,7 +31,8 @@ public class EvalController {
 
 
     @Resource
-    private ContentRetriever contentRetriever;
+    @Qualifier("hybridContentRetriever")
+    private ContentRetriever hybridContentRetriever;
 
     @Resource
     private ChatModel chatModel;
@@ -49,7 +50,7 @@ public class EvalController {
                 .build());
         try {
             // 1) 用线上同一个检索器拿 top-k 上下文
-            List<Content> contents = contentRetriever.retrieve(Query.from(question));
+            List<Content> contents = hybridContentRetriever.retrieve(Query.from(question));
             List<String> contexts = contents.stream()
                     .map(c -> c.textSegment().text())
                     .collect(Collectors.toList());
