@@ -1,5 +1,6 @@
 package com.ty.infinitechatagent.ai;
 
+import com.ty.infinitechatagent.skill.SkillTool;
 import com.ty.infinitechatagent.tool.EmailTool;
 import com.ty.infinitechatagent.tool.RagTool;
 import com.ty.infinitechatagent.tool.TimeTool;
@@ -27,9 +28,10 @@ public class AiChatService {
     @Resource
     private RedisChatMemoryStore redisChatMemoryStore;
 
+    // ★ 由混合检索改为「混合检索 + rerank 精排」的两阶段检索出口
     @Resource
-    @Qualifier("hybridContentRetriever")
-    private ContentRetriever hybridContentRetriever;
+    @Qualifier("rerankingContentRetriever")
+    private ContentRetriever rerankingContentRetriever;
 
     @Resource
     private RagTool ragTool;
@@ -40,10 +42,9 @@ public class AiChatService {
     @Resource
     private StreamingChatModel streamingChatModel;
 
-    // ★ 由混合检索改为「混合检索 + rerank 精排」的两阶段检索出口
+    // ★ 新增：Skills 运行时
     @Resource
-    @Qualifier("rerankingContentRetriever")
-    private ContentRetriever rerankingContentRetriever;
+    private SkillTool skillTool;
 
     @Bean
     public AiChat aiChat() {
@@ -53,13 +54,18 @@ public class AiChatService {
                 .streamingChatModel(streamingChatModel)
                 .contentRetriever(rerankingContentRetriever)
 
+                // ★ L1：把技能清单追加到 @SystemMessage 读到的提示词后面。
+                //   transformer 跑在 @SystemMessage 解析之后，所以 AiChat 接口一行都不用改。
+                .systemMessageTransformer(sm -> sm + "\n\n" + skillTool.catalog())
+
                 .chatMemoryProvider(memoryId -> MessageWindowChatMemory
                         .builder()
                         .id(memoryId)
                         .chatMemoryStore(redisChatMemoryStore)
                         .maxMessages(20)
                         .build())
-                .tools(new TimeTool(), ragTool, emailTool)
+                // ★ 末尾追加 skillTool，让模型能调 loadSkill
+                .tools(new TimeTool(), ragTool, emailTool, skillTool)
                 .toolProvider(mcpToolProvider)
                 .build();
     }

@@ -3061,3 +3061,8 @@ A：增加了兜底校验：若 question 或 answer 中任何一行以三个井�
 ### Q. 千言项目升级 LangChain4j 版本后，McpToolConfig 为什么要改？
 
 A：新版本中 HttpMcpTransport 将被弃用，不改虽然不会报错但代码会爆红，所以改用 StreamableHttpMcpTransport.Builder 构建传输层，URL 指向 https://open.bigmodel.cn/api/mcp/web_search/mcp，通过 customHeaders 传入 Authorization 请求头（取 apiKey.trim()），并开启 logRequests 与 logResponses。另外升级后 Lombok 不能再指望作为传递依赖被带进来，否则会报「lombok 不存在」，需要在 POM 里显式声明并设为 optional。
+
+
+### Q. 千言项目使用的rerank模型是什么？
+
+A：千言项目使用的rerank模型是qwen3-rerank，阈值设为0.2。
