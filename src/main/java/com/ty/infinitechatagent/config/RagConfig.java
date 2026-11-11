@@ -2,12 +2,14 @@ package com.ty.infinitechatagent.config;
 
 import com.ty.infinitechatagent.rag.retriever.HybridContentRetriever;
 import com.ty.infinitechatagent.rag.retriever.PgBm25ContentRetriever;
+import com.ty.infinitechatagent.rag.retriever.RerankingContentRetriever;
 import com.ty.infinitechatagent.rag.splitter.MarkdownHeadingSplitter;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.splitter.DocumentByParagraphSplitter;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.scoring.ScoringModel;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.store.embedding.EmbeddingStore;
@@ -31,6 +33,19 @@ public class RagConfig {
 
     @Value("${pgvector.table}")
     private String table;
+
+    // 粗召回条数（Top-N）：向量/BM25 各自召回、以及 RRF 融合后保留的候选数。
+    // 给得比最终 Top-K 大不少，好让精排有足够的候选空间。
+    @Value("${rag.recall-top-n:20}")
+    private int recallTopN;
+
+    // 精排后最终保留条数（Top-K）：真正喂给大模型的资料条数。
+    @Value("${rag.rerank-top-k:5}")
+    private int rerankTopK;
+
+    // 精排相关性阈值：qwen3-rerank 分数 0~1，低于它的候选直接丢弃。
+    @Value("${rag.rerank-min-score:0.2}")
+    private double rerankMinScore;
 
     @Bean
     public EmbeddingStoreIngestor embeddingStoreIngestor() {
@@ -62,7 +77,7 @@ public class RagConfig {
         return EmbeddingStoreContentRetriever.builder()
                 .embeddingStore(embeddingStore)
                 .embeddingModel(embeddingModel)
-                .maxResults(5)
+                .maxResults(recallTopN)
                 .minScore(0.75)
                 .build();
     }
@@ -72,7 +87,7 @@ public class RagConfig {
      */
     @Bean
     public PgBm25ContentRetriever bm25ContentRetriever(JdbcTemplate jdbcTemplate) {
-        return new PgBm25ContentRetriever(jdbcTemplate, table, 5);
+        return new PgBm25ContentRetriever(jdbcTemplate, table, recallTopN);
     }
 
     /**
@@ -82,6 +97,18 @@ public class RagConfig {
     public ContentRetriever hybridContentRetriever(
             @Qualifier("vectorContentRetriever") ContentRetriever vectorContentRetriever,
             PgBm25ContentRetriever bm25ContentRetriever) {
-        return new HybridContentRetriever(vectorContentRetriever, bm25ContentRetriever, 5, 60);
+        return new HybridContentRetriever(vectorContentRetriever, bm25ContentRetriever, recallTopN, 60);
+    }
+
+    /**
+     * 重排检索（精排，两阶段检索的最终出口）：
+     * 把混合检索的 recallTopN 条候选交给 qwen3-rerank 精排，过阈值后取 rerankTopK 条。
+     * AiChatService 和 EvalController 都注入这个 Bean。
+     */
+    @Bean
+    public ContentRetriever rerankingContentRetriever(
+            @Qualifier("hybridContentRetriever") ContentRetriever hybridContentRetriever,
+            ScoringModel scoringModel) {
+        return new RerankingContentRetriever(hybridContentRetriever, scoringModel, rerankTopK, rerankMinScore);
     }
 }

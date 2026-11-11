@@ -2,6 +2,7 @@ package com.ty.infinitechatagent.ragas;
 
 import com.ty.infinitechatagent.monitor.MonitorContext;
 import com.ty.infinitechatagent.monitor.MonitorContextHolder;
+import com.ty.infinitechatagent.rag.retriever.RerankingContentRetriever;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
@@ -31,8 +32,8 @@ public class EvalController {
 
 
     @Resource
-    @Qualifier("hybridContentRetriever")
-    private ContentRetriever hybridContentRetriever;
+    @Qualifier("rerankingContentRetriever") // ★ 由混合检索改为「混合检索 + rerank 精排」的两阶段检索出口
+    private ContentRetriever rerankingContentRetriever;
 
     @Resource
     private ChatModel chatModel;
@@ -50,7 +51,7 @@ public class EvalController {
                 .build());
         try {
             // 1) 用线上同一个检索器拿 top-k 上下文
-            List<Content> contents = hybridContentRetriever.retrieve(Query.from(question));
+            List<Content> contents = rerankingContentRetriever.retrieve(Query.from(question));
             List<String> contexts = contents.stream()
                     .map(c -> c.textSegment().text())
                     .collect(Collectors.toList());

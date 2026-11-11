@@ -40,13 +40,18 @@ public class AiChatService {
     @Resource
     private StreamingChatModel streamingChatModel;
 
+    // ★ 由混合检索改为「混合检索 + rerank 精排」的两阶段检索出口
+    @Resource
+    @Qualifier("rerankingContentRetriever")
+    private ContentRetriever rerankingContentRetriever;
+
     @Bean
     public AiChat aiChat() {
 
         return AiServices.builder(AiChat.class)
                 .chatModel(chatModel)
                 .streamingChatModel(streamingChatModel)
-                .contentRetriever(hybridContentRetriever)
+                .contentRetriever(rerankingContentRetriever)
 
                 .chatMemoryProvider(memoryId -> MessageWindowChatMemory
                         .builder()

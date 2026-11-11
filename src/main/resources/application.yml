@@ -48,3 +48,14 @@ management:
   endpoint:
     health:
       show-details: always
+
+rerank:
+  model-name: qwen3-rerank
+
+rag:
+  # 粗召回条数 Top-N：向量/BM25 各自召回、以及 RRF 融合后保留的候选数
+  recall-top-n: 20
+  # 精排后最终保留条数 Top-K：真正喂给大模型的资料条数
+  rerank-top-k: 5
+  # 精排相关性阈值：qwen3-rerank 分数范围 0~1，低于它的候选直接丢弃
+  rerank-min-score: 0.2
